@@ -99,7 +99,4 @@ test_erc20_token_address = os.getenv("TEST_ERC20_TOKEN_ADDRESS")
 web3_test_private_key_a = os.getenv("TEST_WALLET_PRIVATE_KEY_A")
 web3_test_private_key_b = os.getenv("TEST_WALLET_PRIVATE_KEY_B")
 web3_test_private_key_c = os.getenv("TEST_WALLET_PRIVATE_KEY_C")
-
-coinalpha_order_book_api_username = "***REMOVED***"
-coinalpha_order_book_api_password = "***REMOVED***"
 """

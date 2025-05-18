@@ -17,6 +17,7 @@ from hummingbot.core.event.events import MarketEvent, OrderFilledEvent
 from hummingbot.core.network_iterator import NetworkIterator
 from hummingbot.core.rate_oracle.rate_oracle import RateOracle
 from hummingbot.core.utils.estimate_fee import estimate_fee
+from hummingbot.connector.connector_metrics_collector import DummyMetricsCollector
 
 if TYPE_CHECKING:
     from hummingbot.client.config.client_config_map import ClientConfigMap
@@ -65,11 +66,8 @@ cdef class ConnectorBase(NetworkIterator):
         self._current_trade_fills = set()
         self._exchange_order_ids = dict()
         self._trade_fee_schema = None
-        self._trade_volume_metric_collector = client_config_map.anonymized_metrics_mode.get_collector(
-            connector=self,
-            rate_provider=RateOracle.get_instance(),
-            instance_id=client_config_map.instance_id,
-        )
+        # Telemetry removed: use a no-op collector to maintain interface
+        self._trade_volume_metric_collector = DummyMetricsCollector()
         self._client_config: Union[ClientConfigAdapter, ClientConfigMap] = client_config_map  # for IDE autocomplete
 
     @property

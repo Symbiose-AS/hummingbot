@@ -10,8 +10,6 @@ import yaml
 
 from hummingbot import root_path
 from hummingbot.client.config.client_config_map import (
-    AnonymizedMetricsDisabledMode,
-    AnonymizedMetricsEnabledMode,
     ClientConfigMap,
     ColorConfigMap,
     DBOtherMode,
@@ -181,14 +179,6 @@ def _migrate_global_config_modes(client_config_map: ClientConfigAdapter, data: D
         client_config_map.mqtt_bridge, data, "mqtt_autostart"
     )
 
-    anonymized_metrics_enabled = data.pop("anonymized_metrics_enabled")
-    anonymized_metrics_interval_min = data.pop("anonymized_metrics_interval_min")
-    if anonymized_metrics_enabled:
-        client_config_map.anonymized_metrics_mode = AnonymizedMetricsEnabledMode(
-            anonymized_metrics_interval_min=anonymized_metrics_interval_min
-        )
-    else:
-        client_config_map.anonymized_metrics_mode = AnonymizedMetricsDisabledMode()
 
     _migrate_global_config_field(
         client_config_map.global_token, data, "global_token", "global_token_name"
