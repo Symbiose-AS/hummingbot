@@ -17,7 +17,6 @@ The Hummingbot codebase is free and publicly available under the Apache 2.0 open
 * [Discord](https://discord.gg/hummingbot): The main gathering spot for the global Hummingbot community
 * [YouTube](https://www.youtube.com/c/hummingbot): Videos that teach you how to get the most of of Hummingbot
 * [Twitter](https://twitter.com/_hummingbot): Get the latest announcements about Hummingbot
-* [Reported Volumes](https://p.datadoghq.com/sb/a96a744f5-a15479d77992ccba0d23aecfd4c87a52): Reported trading volumes across all Hummingbot instances
 * [Newsletter](https://hummingbot.substack.com): Get our newsletter whenever we ship a new release
 
 

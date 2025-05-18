@@ -14,11 +14,7 @@ from hummingbot.client.config.config_methods import using_exchange as using_exch
 from hummingbot.client.config.config_validators import validate_bool, validate_float
 from hummingbot.client.settings import DEFAULT_GATEWAY_CERTS_PATH, DEFAULT_LOG_FILE_PATH, AllConnectorSettings
 from hummingbot.connector.connector_base import ConnectorBase
-from hummingbot.connector.connector_metrics_collector import (
-    DummyMetricsCollector,
-    MetricsCollector,
-    TradeVolumeMetricCollector,
-)
+from hummingbot.connector.connector_metrics_collector import DummyMetricsCollector
 from hummingbot.connector.exchange.binance.binance_utils import BinanceConfigMap
 from hummingbot.connector.exchange.gate_io.gate_io_utils import GateIOConfigMap
 from hummingbot.connector.exchange.kraken.kraken_utils import KrakenConfigMap
@@ -387,60 +383,6 @@ class CommandsTimeoutConfigMap(BaseClientModel):
     model_config = ConfigDict(title="commands_timeout")
 
 
-class AnonymizedMetricsMode(BaseClientModel, ABC):
-    @abstractmethod
-    def get_collector(
-            self,
-            connector: ConnectorBase,
-            rate_provider: RateOracle,
-            instance_id: str,
-            valuation_token: str = "USDT",
-    ) -> MetricsCollector:
-        ...
-
-
-class AnonymizedMetricsDisabledMode(AnonymizedMetricsMode):
-    model_config = ConfigDict(title="anonymized_metrics_disabled")
-
-    def get_collector(
-            self,
-            connector: ConnectorBase,
-            rate_provider: RateOracle,
-            instance_id: str,
-            valuation_token: str = "USDT",
-    ) -> MetricsCollector:
-        return DummyMetricsCollector()
-
-
-class AnonymizedMetricsEnabledMode(AnonymizedMetricsMode):
-    anonymized_metrics_interval_min: Decimal = Field(
-        default=Decimal("15"),
-        gt=Decimal("0"),
-        json_schema_extra={"prompt": lambda cm: "How often do you want to send the anonymized metrics (in minutes)"},
-    )
-    model_config = ConfigDict(title="anonymized_metrics_enabled")
-
-    def get_collector(
-            self,
-            connector: ConnectorBase,
-            rate_provider: RateOracle,
-            instance_id: str,
-            valuation_token: str = "USDT",
-    ) -> MetricsCollector:
-        instance = TradeVolumeMetricCollector(
-            connector=connector,
-            activation_interval=self.anonymized_metrics_interval_min,
-            rate_provider=rate_provider,
-            instance_id=instance_id,
-            valuation_token=valuation_token,
-        )
-        return instance
-
-
-METRICS_MODES = {
-    AnonymizedMetricsDisabledMode.model_config["title"]: AnonymizedMetricsDisabledMode,
-    AnonymizedMetricsEnabledMode.model_config["title"]: AnonymizedMetricsEnabledMode,
-}
 
 
 class RateSourceModeBase(BaseClientModel, ABC):
@@ -717,11 +659,6 @@ class ClientConfigMap(BaseClientModel):
         json_schema_extra={"prompt": lambda cm: "Where would you like to save certificates that connect your bot to Gateway? (default 'certs')"},
     )
 
-    anonymized_metrics_mode: Union[tuple(METRICS_MODES.values())] = Field(
-        default=AnonymizedMetricsEnabledMode(),
-        description="Whether to enable aggregated order and trade data collection",
-        json_schema_extra={"prompt": lambda cm: f"Select the desired metrics mode ({'/'.join(list(METRICS_MODES.keys()))})"},
-    )
     command_shortcuts: List[CommandShortcutModel] = Field(
         default=[
             CommandShortcutModel(
@@ -828,18 +765,6 @@ class ClientConfigMap(BaseClientModel):
             sub_model = DB_MODES[v].model_construct()
         return sub_model
 
-    @field_validator("anonymized_metrics_mode", mode="before")
-    @classmethod
-    def validate_anonymized_metrics_mode(cls, v: Union[(str, Dict) + tuple(METRICS_MODES.values())]):
-        if isinstance(v, tuple(METRICS_MODES.values()) + (Dict,)):
-            sub_model = v
-        elif v not in METRICS_MODES:
-            raise ValueError(
-                f"Invalid metrics mode, please choose a value from {list(METRICS_MODES.keys())}."
-            )
-        else:
-            sub_model = METRICS_MODES[v].model_construct()
-        return sub_model
 
     @field_validator("rate_oracle_source", mode="before")
     @classmethod
